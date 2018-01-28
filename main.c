@@ -4,11 +4,12 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <assert.h>
+#include "SDL2_gfxPrimitives.h"
 
-#define CELL_SIZE 10
-#define BODY_RADIUS 9
-#define FOOD_RADIUS 4
-#define EYE_RADIUS 1
+#define CELL_SIZE 50
+#define BODY_RADIUS 25
+#define FOOD_RADIUS 12
+#define EYE_RADIUS 5
 #define MAX_MAP_SIZE 100
 
 typedef enum {
@@ -51,7 +52,7 @@ void load_map(int argc, char *argv[]) {
     FILE *input = stdin;
     if (argc > 1)
         input = fopen(argv[1], "r");
-    bool must_load_default_map = (bool) feof(input);
+    bool must_load_default_map = true || (bool) feof(input);
     if (must_load_default_map) {
         HEIGHT = 10;
         WIDTH = 10;
@@ -84,7 +85,7 @@ void load_map(int argc, char *argv[]) {
     }
 }
 
-int move_x(int pos, Cell state) {
+int move_y(int pos, Cell state) {
     switch (state) {
         case LEFT:
             return pos;
@@ -99,7 +100,7 @@ int move_x(int pos, Cell state) {
     }
 }
 
-int move_y(int pos, Cell state) {
+int move_x(int pos, Cell state) {
     switch (state) {
         case UP:
             return pos;
@@ -148,16 +149,91 @@ int move_forward() {
 
 int main(int argc, char *argv[]) {
     load_map(argc, argv);
-    while (true) {
-        if (move_forward())
-            break;
-        for (int i = 0; i < HEIGHT; i++) {
-            for (int j = 0; j < WIDTH; j++)
-                printf("%d", (int) map[i][j]);
-            printf("\n");
-        }
-        printf("\n");
-        for (int i = 0; i < 1000000000; i++);
+
+    //init sdl
+    if (SDL_Init(SDL_INIT_VIDEO)) {
+        printf("SDL_Init Error: %s", SDL_GetError());
+        return 1;
     }
+
+    SDL_Window *window = SDL_CreateWindow("SDL2_gfx test", 100, 100, WIDTH * CELL_SIZE, HEIGHT * CELL_SIZE,
+                                          SDL_WINDOW_OPENGL);
+    if (window == NULL) {
+        printf("SDL_CreateWindow Error: %s", SDL_GetError());
+        SDL_Quit();
+        return 2;
+    }
+
+    SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+    if (renderer == NULL) {
+        SDL_DestroyWindow(window);
+        printf("SDL_CreateRenderer Error: %s", SDL_GetError());
+        SDL_Quit();
+        return 3;
+    }
+
+    SDL_Event e;
+
+    int quit = 0;
+    while (!quit) {
+        if (SDL_PollEvent(&e)) {
+            if (e.type == SDL_QUIT)
+                quit = 1;
+            else if (e.type == SDL_KEYDOWN) {
+                switch (e.key.keysym.sym) {
+                    case SDLK_UP:
+                        if (map[head.x][head.y] != DOWN)
+                            map[head.x][head.y] = UP;
+                        break;
+                    case SDLK_DOWN:
+                        if (map[head.x][head.y] != UP)
+                            map[head.x][head.y] = DOWN;
+                        break;
+                    case SDLK_LEFT:
+                        if (map[head.x][head.y] != RIGHT)
+                            map[head.x][head.y] = LEFT;
+                        break;
+                    case SDLK_RIGHT:
+                        if (map[head.x][head.y] != LEFT)
+                            map[head.x][head.y] = RIGHT;
+                        break;
+                }
+            }
+
+        }
+
+        if (move_forward()) {
+            SDL_RenderClear(renderer);
+
+            break;
+        }
+        SDL_SetRenderDrawColor(renderer, 10, 10, 10, 0);
+        SDL_RenderClear(renderer);
+
+        for (int i = 0; i < HEIGHT; i++) {
+            for (int j = 0; j < WIDTH; j++) {
+                switch (map[i][j]) {
+                    case FOOD:
+                        filledCircleColor(renderer, i * CELL_SIZE + CELL_SIZE / 2, j * CELL_SIZE + CELL_SIZE / 2,
+                                          FOOD_RADIUS, 0xFF0000FF);
+                        break;
+                    case EMPTY:
+                        break;
+                    default:
+                        filledCircleColor(renderer, i * CELL_SIZE + CELL_SIZE / 2, j * CELL_SIZE + CELL_SIZE / 2,
+                                          BODY_RADIUS, 0xFF80FF00);
+                }
+            }
+        }
+
+        //for (int i = 0; i < 1000000000; i++);
+        SDL_RenderPresent(renderer);
+        SDL_Delay(100);
+    }
+
+    //quit sdl
+    SDL_DestroyRenderer(renderer);
+    SDL_DestroyWindow(window);
+    SDL_Quit();
     return 0;
 }
