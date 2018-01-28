@@ -204,7 +204,7 @@ int main(int argc, char *argv[]) {
 
         if (move_forward()) {
             SDL_RenderClear(renderer);
-
+            SDL_Delay(3000);
             break;
         }
         SDL_SetRenderDrawColor(renderer, 10, 10, 10, 0);
