@@ -219,6 +219,9 @@ int main(int argc, char *argv[]) {
                         break;
                     case EMPTY:
                         break;
+                    case BLOCK:
+                        filledCircleColor(renderer, i * CELL_SIZE + CELL_SIZE / 2, j * CELL_SIZE + CELL_SIZE / 2,
+                                          BODY_RADIUS, 0xFF888888);
                     default:
                         if (i == head.x && j == head.y)
                             filledCircleColor(renderer, i * CELL_SIZE + CELL_SIZE / 2, j * CELL_SIZE + CELL_SIZE / 2,
