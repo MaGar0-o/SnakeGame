@@ -220,13 +220,16 @@ int main(int argc, char *argv[]) {
                     case EMPTY:
                         break;
                     default:
-                        filledCircleColor(renderer, i * CELL_SIZE + CELL_SIZE / 2, j * CELL_SIZE + CELL_SIZE / 2,
-                                          BODY_RADIUS, 0xFF80FF00);
+                        if (i == head.x && j == head.y)
+                            filledCircleColor(renderer, i * CELL_SIZE + CELL_SIZE / 2, j * CELL_SIZE + CELL_SIZE / 2,
+                                              BODY_RADIUS, 0xFF08FF00);
+                        else
+                            filledCircleColor(renderer, i * CELL_SIZE + CELL_SIZE / 2, j * CELL_SIZE + CELL_SIZE / 2,
+                                              BODY_RADIUS, 0xFF80FF00);
                 }
             }
         }
 
-        //for (int i = 0; i < 1000000000; i++);
         SDL_RenderPresent(renderer);
         SDL_Delay(100);
     }
